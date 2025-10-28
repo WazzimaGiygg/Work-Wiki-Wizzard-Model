@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel de Investigação</title>
+    <script type="module">
+        // Importa Firebase SDKs (v10+ modular)
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-auth.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js";
+
+        // Configuração Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyB9GkSqTIZ0kbVsba_WOdQeVAETrF9qna0",
+            authDomain: "wzzm-ce3fc.firebaseapp.com",
+            projectId: "wzzm-ce3fc",
+            storageBucket: "wzzm-ce3fc.appspot.com",
+            messagingSenderId: "249427877153",
+            appId: "1:249427877153:web:0e4297294794a5aadeb260",
+            measurementId: "G-PLKNZNFCQ8"
+        };
+
+        // Inicializa Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // Login
+        async function login() {
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+            } catch (error) {
+                alert("Erro no login: " + error.message);
+            }
+        }
+
+        // Logout
+        function logout() {
+            signOut(auth);
+        }
+
+        // Escuta mudança de autenticação
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                // Verifica se o usuário está na coleção "admins"
+                const adminRef = doc(db, "admins", user.uid);
+                const adminSnap = await getDoc(adminRef);
+
+                if (adminSnap.exists()) {
+                    document.getElementById("login-section").style.display = "none";
+                    document.getElementById("admin-panel").style.display = "block";
+                    document.getElementById("user-email").textContent = user.email;
+                } else {
+                    alert("Acesso negado. Você não é um administrador.");
+                    logout();
+                }
+            } else {
+                document.getElementById("login-section").style.display = "block";
+                document.getElementById("admin-panel").style.display = "none";
+            }
+        });
+    </script>
+
+    <style>
+        body {
+            font-family: "Segoe UI", Arial, sans-serif;
+            background: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 60px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 0 12px rgba(0,0,0,0.1);
+        }
+
+        h2 { text-align: center; }
+
+        input {
+            display: block;
+            width: 100%;
+            margin-bottom: 10px;
+            padding: 10px;
+        }
+
+        button {
+            background-color: #0078D7;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #005fa3;
+        }
+
+        .admin-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .admin-buttons button {
+            background-color: #444;
+        }
+
+        .logout-btn {
+            background-color: #d9534f;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="login-section">
+        <h2>Login de Administrador</h2>
+        <input type="email" id="email" placeholder="Email do administrador" />
+        <input type="password" id="password" placeholder="Senha" />
+        <button onclick="login()">Entrar</button>
+    </div>
+
+    <div class="container" id="admin-panel" style="display:none;">
+        <h2>Painel do Administrador</h2>
+        <p>Bem-vindo, <span id="user-email"></span></p>
+        <div class="admin-buttons">
+            <button onclick="alert('Abrir página de Avaliação')">📋 Avaliação</button>
+            <button onclick="alert('Abrir página de Investigação')">🔍 Investigação</button>
+            <button onclick="alert('Abrir página de Relatórios')">📊 Relatórios</button>
+        </div>
+        <br>
+        <button class="logout-btn" onclick="logout()">Sair</button>
+    </div>
+</body>
+</html>

@@ -5,12 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel de Investigação</title>
     <script type="module">
-        // Importa Firebase SDKs (v10+ modular)
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-auth.js";
+        import { getAuth, onAuthStateChanged, signOut, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-auth.js";
         import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js";
 
-        // Configuração Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyB9GkSqTIZ0kbVsba_WOdQeVAETrF9qna0",
             authDomain: "wzzm-ce3fc.firebaseapp.com",
@@ -21,32 +19,28 @@
             measurementId: "G-PLKNZNFCQ8"
         };
 
-        // Inicializa Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
+        const provider = new GoogleAuthProvider();
 
-        // Login
-        async function login() {
-            const email = document.getElementById("email").value;
-            const password = document.getElementById("password").value;
-
+        // Login com Google
+        async function loginWithGoogle() {
             try {
-                await signInWithEmailAndPassword(auth, email, password);
+                const result = await signInWithPopup(auth, provider);
+                // user é verificado no onAuthStateChanged
             } catch (error) {
                 alert("Erro no login: " + error.message);
             }
         }
 
-        // Logout
         function logout() {
             signOut(auth);
         }
 
-        // Escuta mudança de autenticação
         onAuthStateChanged(auth, async (user) => {
             if (user) {
-                // Verifica se o usuário está na coleção "admins"
+                // Verifica se UID do Google está na coleção "admins"
                 const adminRef = doc(db, "admins", user.uid);
                 const adminSnap = await getDoc(adminRef);
 
@@ -84,13 +78,6 @@
 
         h2 { text-align: center; }
 
-        input {
-            display: block;
-            width: 100%;
-            margin-bottom: 10px;
-            padding: 10px;
-        }
-
         button {
             background-color: #0078D7;
             color: white;
@@ -100,9 +87,7 @@
             cursor: pointer;
         }
 
-        button:hover {
-            background-color: #005fa3;
-        }
+        button:hover { background-color: #005fa3; }
 
         .admin-buttons {
             display: flex;
@@ -110,21 +95,14 @@
             gap: 10px;
         }
 
-        .admin-buttons button {
-            background-color: #444;
-        }
-
-        .logout-btn {
-            background-color: #d9534f;
-        }
+        .admin-buttons button { background-color: #444; }
+        .logout-btn { background-color: #d9534f; }
     </style>
 </head>
 <body>
     <div class="container" id="login-section">
         <h2>Login de Administrador</h2>
-        <input type="email" id="email" placeholder="Email do administrador" />
-        <input type="password" id="password" placeholder="Senha" />
-        <button onclick="login()">Entrar</button>
+        <button onclick="loginWithGoogle()">Entrar com Google</button>
     </div>
 
     <div class="container" id="admin-panel" style="display:none;">
